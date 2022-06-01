@@ -36,7 +36,7 @@ y <- 1 + x + x^2 + x^3 + e
 
 df <- data.frame(y, x)
 
-model <- regsubsets(y ~ poly(x, 10, raw = T), 
+model <- regsubsets(y ~ poly(x, 10), 
                       data = df, 
                       nvmax = 10)
 model_summary <- summary(model)
@@ -51,32 +51,56 @@ min_bic
 max_adjr2 <- which.max(model_summary$adjr2)
 max_adjr2
 
-max_rss <- which.max(model_summary$rss)
-max_rss
 
-# Se visualizan los mejores valores
+
+# Se visualizan valores
 
 par(mfrow = c(2, 2))
 
 plot(model_summary$cp, main = "Mejor Cp" , xlab = "Tamaño del subset", ylab= "Cp", pch = 20, type = "l")
-points(3, model_summary$cp[3], pch = 4, col = "brown3",cex = 2, lwd = 4)
-
+points(3, model_summary$cp[3], pch = 4, col = "brown3",cex = 2, lwd = 3)
 
 plot(model_summary$bic, main = "Mejor BIC" , xlab = "Tamaño del subset", ylab= "BIC", pch = 20, type = "l")
-points(3, model_summary$bic[3], pch = 4, col = "brown3", cex = 2, lwd = 7)
+points(3, model_summary$bic[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
 
 plot(model_summary$adjr2, main = "Mejor R2 ajustado" , xlab = "Tamaño del subset", ylab= "R2 ajustado", pch = 20, type = "l")
-points(3, model_summary$adjr2[3], pch = 4, col = "brown3", cex = 2, lwd = 7)
-
+points(3, model_summary$adjr2[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
 
 
 
 # c. Selección hacia adelante
 
+model_fwd <- regsubsets(y ~ poly(x, 10), 
+                    data = df, 
+                    nvmax = 10, 
+                    method = "forward")
+model_fwd_summary <- summary(model_fwd)
+model_fwd_summary
+
+min_cp <- which.min(model_fwd_summary$cp)
+min_cp
+
+min_bic <- which.min(model_fwd_summary$bic)
+min_bic
+
+max_adjr2 <- which.max(model_fwd_summary$adjr2)
+max_adjr2
+
+# Se visualizan valores
+
+par(mfrow = c(2, 2))
+
+plot(model_fwd_summary$cp, main = "Mejor Cp" , xlab = "Tamaño del subset", ylab= "Cp", pch = 20, type = "l")
+points(3, model_fwd_summary$cp[3], pch = 4, col = "brown3",cex = 2, lwd = 3)
+
+plot(model_fwd_summary$bic, main = "Mejor BIC" , xlab = "Tamaño del subset", ylab= "BIC", pch = 20, type = "l")
+points(3, model_fwd_summary$bic[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
+
+plot(model_fwd_summary$adjr2, main = "Mejor R2 ajustado" , xlab = "Tamaño del subset", ylab= "R2 ajustado", pch = 20, type = "l")
+points(3, model_fwd_summary$adjr2[4], pch = 4, col = "brown3", cex = 2, lwd = 3)
 
 
-
-
+#COMENTAR!!!
 
 
 #============================= PARTE 2 ===================================
