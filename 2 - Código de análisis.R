@@ -16,16 +16,8 @@ rm(list = ls())
 setwd("C:/Users/Cecilia Machado/Desktop/Obligatorio MLS")
 
 # Cargamos libreria a utilizar
-
-
-# Cargamos los datos
-datos = Hitters
-
-## Visualizamos los datos 
-View(datos)
-
-# 
-summary(datos)
+library(ISLR)
+library(leaps)
 
 # Fin del preambulo #
 #====================================================================
@@ -34,12 +26,20 @@ summary(datos)
 # Parte 1 
 #**********
 
-#**************
-# Modelo lineal 
-#**************
+#******************************************
+# Modelo lineal Y Regularización de métodos 
+#******************************************
 
-#**************************
-# Regularización de métodos 
-#**************************
+# Se crea función lineal
+
+set.seed(1234)
+
+x <- rnorm(100)
+e <- rnorm(100)
+Y <- 1 + x + x^2 + x^3 + e
+
+best_model_1 <- regsubsets(Y ~ ., 
+                         data = x, 
+                       nvmax = x^10)
 
 
