@@ -18,25 +18,66 @@ setwd("C:/Users/Cecilia Machado/Desktop/Obligatorio MLS")
 # Cargamos libreria a utilizar
 library(ISLR)
 library(leaps)
+library(caret)
+
 
 # Fin del preambulo #
 #=========================================================================
 
-#******************************************
-# Modelo lineal Y Regularización de métodos 
-#******************************************
-
-# Se crea función lineal
+# a. Se crea función lineal
 
 set.seed(1234)
 
 x <- rnorm(100)
 e <- rnorm(100)
-Y <- 1 + x + x^2 + x^3 + e
+y <- 1 + x + x^2 + x^3 + e
 
-best_model_1 <- regsubsets(Y ~ ., 
-                         data = x, 
-                       nvmax = x^10)
+# b. Se selecciona mejor modelo 
+
+df <- data.frame(y, x)
+
+model <- regsubsets(y ~ poly(x, 10, raw = T), 
+                      data = df, 
+                      nvmax = 10)
+model_summary <- summary(model)
+model_summary
+
+min_cp <- which.min(model_summary$cp)
+min_cp
+
+min_bic <- which.min(model_summary$bic)
+min_bic
+
+max_adjr2 <- which.max(model_summary$adjr2)
+max_adjr2
+
+max_rss <- which.max(model_summary$rss)
+max_rss
+
+# Se visualizan los mejores valores
+
+par(mfrow = c(2, 2))
+
+plot(model_summary$cp, main = "Mejor Cp" , xlab = "Tamaño del subset", ylab= "Cp", pch = 20, type = "l")
+points(3, model_summary$cp[3], pch = 4, col = "brown3",cex = 2, lwd = 4)
+
+
+plot(model_summary$bic, main = "Mejor BIC" , xlab = "Tamaño del subset", ylab= "BIC", pch = 20, type = "l")
+points(3, model_summary$bic[3], pch = 4, col = "brown3", cex = 2, lwd = 7)
+
+plot(model_summary$adjr2, main = "Mejor R2 ajustado" , xlab = "Tamaño del subset", ylab= "R2 ajustado", pch = 20, type = "l")
+points(3, model_summary$adjr2[3], pch = 4, col = "brown3", cex = 2, lwd = 7)
+
+
+
+
+# c. Selección hacia adelante
+
+
+
+
+
+
 
 #============================= PARTE 2 ===================================
 
