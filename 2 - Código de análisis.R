@@ -19,6 +19,7 @@ setwd("C:/Users/Cecilia Machado/Desktop/Obligatorio MLS")
 library(ISLR)
 library(leaps)
 library(caret)
+library(glmnet)
 
 
 # Fin del preambulo #
@@ -99,8 +100,16 @@ points(3, model_fwd_summary$bic[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
 plot(model_fwd_summary$adjr2, main = "Mejor R2 ajustado" , xlab = "Tamaño del subset", ylab= "R2 ajustado", pch = 20, type = "l")
 points(3, model_fwd_summary$adjr2[4], pch = 4, col = "brown3", cex = 2, lwd = 3)
 
+coefficients(model_fwd, id = 3)
+coefficients(model_fwd, id = 4)
+
 
 #COMENTAR!!!
+
+# d.Lasso y Cross-validation
+
+matrix = model.matrix(y ~ poly(x, 10, raw = T), data = df)
+
 
 
 #============================= PARTE 2 ===================================
