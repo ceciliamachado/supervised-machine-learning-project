@@ -163,11 +163,11 @@ reg_multtiple_mpg <- lm(mpg ~ . - name, data = datos)
 summary(reg_multtiple_mpg)
 
 # Se puede afirmar que al menos uno de los predictores introducidos en el modelo está relacionado con la variable mpg
-# ya que el p-value obtenido para el estadístico F es muy pequeño. 
+# ya que el p-value obtenido para el estadístico F es muy pequeño (p-value= < 2.2e-16). 
 
-# El modelo es capaz de explicar el 82% de la variablilidad observada (r2= 0.8182)
+# El modelo es capaz de explicar el 82% de la variablilidad observada (r2aj= 0.8182)
 
-# Algunos de los predictores tienen p-values muy altos, sugiriendo que no contribuyen al modelo por lo que deben ser excluidos
+# Algunos de los predictores tienen p-values muy altos, sugiriendo que no contribuyen al modelo 
 # por ejemplo, cylinders, horsepower y acceleration. Por el contrario, los predictores weight, year, origin y displacement
 # tienen p-values más pequeños, por lo cual, estos le aportan más significancia de relación al modelo. 
 
@@ -178,22 +178,64 @@ par(mfrow= c(2,2))
 
 fit <- plot(reg_multtiple_mpg)
 
-# VER
+# Se observa una no linealidad entre los residuos, por lo cual, hay componentes no lineles
+# del modelo que están quedando sin modelar.
 
-plot(predict(reg_multtiple_mpg), residuals(reg_multtiple_mpg))
-plot(predict(reg_multtiple_mpg), rstudent(reg_multtiple_mpg))
-plot(hatvalues(reg_multtiple_mpg))
-which.max(hatvalues(reg_multtiple_mpg))
-
-
-
-#COMENTAR!!
 
 # e.Modelo lineal con interacciones
 
-summary(lm(mpg ~ .* horsepower , data = datos[,-9]))
+summary(lm(formula= mpg ~ .*. , data = datos[,-9]))
 
-#COMENTAR!!
 
-# f. Teastear hipótesis
+# Se observa que las variables más significativas en este modelo son acceleration y origin 
+# al igual que su interacción entre ambas ya que obtuvieron los niveles más bajos de significancia
+# (0.00735, 0.00345, 0.00365 respectivamente).
+
+# También se puede ver que hay predictores con un solo asterisco, pero estas no serían lo
+# suficientemente significativas para este modelo debido al gran número de predictores que contiene.
+
+# f. Testear hipótesis Beta1=Beta2=0
+
+# H0: Si Beta1 = 0 
+# H1: Beta1 != 0
+
+coef(summary(reg_multtiple_mpg))
+
+#============================= PARTE 2 ===================================
+
+# Preambulo 3 #
+
+# Borramos datos de la memoria
+rm(list = ls())
+
+# Establecemos directorio de trabajo
+setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-project")
+
+# Cargamos libreria a utilizar
+library(MASS)
+library(ISLR2)
+library(car)
+
+# Cargamos datos
+datos <-read.table("Auto.data", 
+                   header = T, 
+                   na.strings = "?", 
+                   stringsAsFactors = T)
+
+# Visualizamos datos
+View(datos)
+dim(datos)
+names(datos)
+
+# Omitimos valores NA
+datos <- na.omit(datos)
+dim(datos)
+View(datos)
+
+# Fin del preambulo #
+#=========================================================================
+
+
+
+
 
