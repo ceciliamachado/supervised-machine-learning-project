@@ -201,7 +201,7 @@ summary(lm(formula= mpg ~ .*. , data = datos[,-9]))
 
 coef(summary(reg_multtiple_mpg))
 
-#============================= PARTE 2 ===================================
+#============================= PARTE 3 ===================================
 
 # Preambulo 3 #
 
@@ -317,3 +317,27 @@ mean(knn.pred == Direction_0910)
 
 # Los métodos que ajustan mejor son el de Regresión logística y LDA
 # ya que arrojan similares tasas de error. 
+
+#============================= PARTE 4 ===================================
+
+# Preambulo 3 #
+
+# Borramos datos de la memoria
+rm(list = ls())
+
+# Establecemos directorio de trabajo
+setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-project")
+
+# Cargamos libreria a utilizar
+
+# Cargamos datos
+datos <- 
+
+# Visualizamos datos
+View(datos)
+dim(datos)
+names(datos)
+
+
+# Fin del preambulo #
+#=========================================================================
