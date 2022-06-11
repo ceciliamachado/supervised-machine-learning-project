@@ -213,6 +213,7 @@ setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-pro
 
 # Cargamos libreria a utilizar
 library(ISLR2)
+library(MASS)
 
 # Cargamos datos
 datos <- Weekly
@@ -263,7 +264,39 @@ falso_positivo
 falso_negativo <- paste(round(tabla[1,1] / (tabla[2,1] + tabla[1,1])*100, 1), "%", sep = "")
 falso_negativo
 
-#
+# d. Ajuste de modelo logístico
 
+train <- (Year < 2009)
+datos_0910 <- datos[!train, ]
 
+reg_log2 <- glm(Direction ~ Lag2, 
+                data = datos, 
+                family = binomial, 
+                subset = train)
+glm_probs2 <- predict(reg_log2, datos_0910 , type = "response")
+glm_pred2 <- rep("Down", length(glm_probs2))
+glm_pred2[glm_probs2 > 0.5] = "Up"
+Direction_0910 <- Direction[!train]
+tabla <- table(glm_pred2, Direction_0910)
+tabla
+
+mean(glm_pred2 == Direction_0910)
+
+# e. Discriminante lineal
+
+lda_fit = lda(Direction ~ Lag2, data = datos, subset = train)
+lda_pred = predict(lda.fit, datos_0910)
+tabla <- table(lda.pred$class, Direction_0910)
+tabla
+
+mean(lda.pred$class == Direction_0910)
+
+# f. Discriminante cuadrático
+
+qda.fit = qda(Direction ~ Lag2, data = datos, subset = train)
+qda.class = predict(qda.fit, datos_0910)$class
+tabla <- table(qda.class, Direction_0910)
+tabla
+
+mean(qda.class == Direction_0910)
 
