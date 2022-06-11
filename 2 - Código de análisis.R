@@ -212,30 +212,48 @@ rm(list = ls())
 setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-project")
 
 # Cargamos libreria a utilizar
-library(MASS)
 library(ISLR2)
-library(car)
 
 # Cargamos datos
-datos <-read.table("Auto.data", 
-                   header = T, 
-                   na.strings = "?", 
-                   stringsAsFactors = T)
+datos <- Weekly
 
 # Visualizamos datos
 View(datos)
 dim(datos)
 names(datos)
 
-# Omitimos valores NA
-datos <- na.omit(datos)
-dim(datos)
-View(datos)
 
 # Fin del preambulo #
 #=========================================================================
 
+# a. Medidas de resumen
 
+summary(datos)
 
+pairs(datos)
+
+cor(datos[, -9]) #se excluye Direction porque es una variable cualitativa.
+
+# Se denota una clara relación no lineal entre las variables Year y Volume.
+# No se distinguen otros patrones entre las restantes variables.
+
+# b. Regresión Logística 
+
+attach(datos)
+
+reg_log <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, 
+               data = datos, 
+               family = binomial)
+summary(reg_log)
+
+# La única variable que parece tener significancia estadística es Log2, 
+# debido a que tiene el p-value más bajo (0.0296)
+
+# c. Matriz de falsos positivos y falsos negativos 
+
+glm_probs <- predict(reg_log, type = "response") 
+glm_pred <- rep("Down", length(glm_probs))
+glm_pred[glm_probs > 0.5] = "Up"
+table(glm_pred, Direction)
 
 
