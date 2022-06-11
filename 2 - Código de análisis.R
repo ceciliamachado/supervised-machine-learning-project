@@ -214,6 +214,7 @@ setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-pro
 # Cargamos libreria a utilizar
 library(ISLR2)
 library(MASS)
+library(class)
 
 # Cargamos datos
 datos <- Weekly
@@ -264,7 +265,7 @@ falso_positivo
 falso_negativo <- paste(round(tabla[1,1] / (tabla[2,1] + tabla[1,1])*100, 1), "%", sep = "")
 falso_negativo
 
-# d. Ajuste de modelo logístico
+# d. Ajuste de modelo logístico (LDA)
 
 train <- (Year < 2009)
 datos_0910 <- datos[!train, ]
@@ -300,3 +301,19 @@ tabla
 
 mean(qda.class == Direction_0910)
 
+# g. KNN
+
+train.X = as.matrix(Lag2[train])
+test.X = as.matrix(Lag2[!train])
+train.Direction = Direction[train]
+set.seed(1)
+knn.pred = knn(train.X, test.X, train.Direction, k = 1)
+tabla <- table(knn.pred, Direction_0910)
+tabla
+
+mean(knn.pred == Direction_0910)
+
+# ¿Qué método ajusta mejor?
+
+# Los métodos que ajustan mejor son el de Regresión logística y LDA
+# ya que arrojan similares tasas de error. 
