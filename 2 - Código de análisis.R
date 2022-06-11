@@ -249,11 +249,21 @@ summary(reg_log)
 # La única variable que parece tener significancia estadística es Log2, 
 # debido a que tiene el p-value más bajo (0.0296)
 
-# c. Matriz de falsos positivos y falsos negativos 
+# c. Matriz de confusión
 
 glm_probs <- predict(reg_log, type = "response") 
 glm_pred <- rep("Down", length(glm_probs))
 glm_pred[glm_probs > 0.5] = "Up"
-table(glm_pred, Direction)
+tabla <- table(glm_pred, Direction)
+tabla
+
+falso_positivo <- paste(round(tabla[2,2] / (tabla[2,2] + tabla[1,2])*100, 1), "%", sep = "")
+falso_positivo
+
+falso_negativo <- paste(round(tabla[1,1] / (tabla[2,1] + tabla[1,1])*100, 1), "%", sep = "")
+falso_negativo
+
+#
+
 
 
