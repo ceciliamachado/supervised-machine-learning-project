@@ -320,7 +320,7 @@ mean(knn.pred == Direction_0910)
 
 #============================= PARTE 4 ===================================
 
-# Preambulo 3 #
+# Preambulo 4 #
 
 # Borramos datos de la memoria
 rm(list = ls())
@@ -329,9 +329,10 @@ rm(list = ls())
 setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-project")
 
 # Cargamos libreria a utilizar
+library(readxl)
 
 # Cargamos datos
-datos <- 
+datos <- read_excel("Sleep&BehavioralHealth.xlsx")
 
 # Visualizamos datos
 View(datos)
@@ -341,3 +342,9 @@ names(datos)
 
 # Fin del preambulo #
 #=========================================================================
+
+
+
+
+
+
