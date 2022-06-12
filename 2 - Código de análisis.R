@@ -330,21 +330,57 @@ setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-pro
 
 # Cargamos libreria a utilizar
 library(readxl)
+library(skimr)
 
 # Cargamos datos
 datos <- read_excel("Sleep&BehavioralHealth.xlsx")
+
+# Esta es una base de datos que registra la calidad del sueño y actividades de 24 estudiantes universitarios. 
+# Los datos fueron recolectados de sus smartwatches y smatphones por 7 días y noches consecutivas.
 
 # Visualizamos datos
 View(datos)
 dim(datos)
 names(datos)
+str(datos)
 
 
 # Fin del preambulo #
 #=========================================================================
 
+# Definición del problema
+
+# Realizar un modelo que sirva para predecir el tiempo que dormirá un estudiante, teniendo en cuenta
+# patrones de comportamiento que son registrados por dispositivos inteligentes.
+
+# Dicho problema surge de la inquietud de saber cuáles son esos patrones de comportamiento  más 
+# relevantes que afectan el sueño de un jóven, ya que hay diversos estudios que han informado
+# que el uso de dispositivos de pantalla afectan el sueño(1). 
+
+# (1)https://www.isglobal.org/healthisglobal/-/custom-blog-portlet/los-dispositivos-moviles-o-los-ladrones-de-sueno-adolescente/6001955/0
+
+# Asimismo, también se quiere verificar si la cantidad de sueño está relacionada con la cantidad 
+# de actividad que realiza el jóven.
+
+# a. Revisión de los datos 
+
+skim(datos)
+
+diagrama_disp <- pairs(~ ., col = factor(mtcars$am), pch = 20, data = datos[,3:14])
+
+cor(datos[,3:14])
+
+# El análisis muestra correlaciones muy altas entre los predictores:
+# distance y step, distance y active time, 
+# duration in bed con light sleep y REM, 
+# night time usage con  total phone usage y calories burnt
+
+plot(datos$`distance travelled (km)`,datos$`acive time (minutes)`, pch=20, col = factor(mtcars$am))
+
+# Si la correlación es alta  por lo tanto las variables aportan información redundante, se analizará si el 
+# modelo mejora o no empeora excluyendo alguno de estos predictores. 
 
 
-
+# b. Regresión lineal
 
 
