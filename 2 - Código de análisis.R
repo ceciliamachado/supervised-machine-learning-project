@@ -331,6 +331,7 @@ setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-pro
 # Cargamos libreria a utilizar
 library(readxl)
 library(skimr)
+library(car)
 
 # Cargamos datos
 datos <- read_excel("Sleep&BehavioralHealth.xlsx")
@@ -364,23 +365,102 @@ str(datos)
 
 # a. Revisión de los datos 
 
+attach(datos)
+
 skim(datos)
 
-diagrama_disp <- pairs(~ ., col = factor(mtcars$am), pch = 20, data = datos[,3:14])
+diagrama_disp <- pairs(~ ., col = factor(mtcars$am), pch = 20, data = datos[,3:14], main= "Diagrama de dispersión")
 
 cor(datos[,3:14])
 
 # El análisis muestra correlaciones muy altas entre los predictores:
-# distance y step, distance y active time, 
-# duration in bed con light sleep y REM, 
-# night time usage con  total phone usage y calories burnt
-
-plot(datos$`distance travelled (km)`,datos$`acive time (minutes)`, pch=20, col = factor(mtcars$am))
+# dist y step, dist y active 
+# inbed con lightsl y REMsl, 
+# nphone con  tphone y cal
 
 # Si la correlación es alta  por lo tanto las variables aportan información redundante, se analizará si el 
 # modelo mejora o no empeora excluyendo alguno de estos predictores. 
 
 
-# b. Regresión lineal
+# b. Modelado
+
+# Se parte el data set en training y testing para estimar los coeficientes del modelo en el primero
+# y tener una estimación independiente de la performance en el dataset de testing.
+
+# En este caso se ha decidido tomar una muestra de training del 70%, y por ende, 30% de testing.
+
+set.seed(1)
+train <- (sample(nrow(datos), nrow(datos)*0.8))
+test <- (-train)
+
+# Regresión Lineal 
+
+# Se realiza un ajuste con todas las variables del modelo con training
+
+reg <- lm(tphone~., data=datos, subset=train)
+
+summary(reg)
+
+# El p-value obtenido para el F-statistic es muy pequeño, por lo cual, al menos uno de los predictores
+# introduciodos en el modelo está relacionado con la variable tphone.
+# También se observa que el modelo con todas los perdictores es capaz de explicar un 82.2%, pero que los que
+# tienen más relevancia son: step, dist, active, nphone, unphone.
+
+# Selección de predictores
+
+# Como la exclusión de predictores basándose en p-values no es aconsejable, en su lugar se empleará
+# el método de step para la selección de los mismos. 
+
+reg_step=step(reg, direction = "both", trace = 1)
+
+summary(reg_step)
+
+# Se observa el modelo sigue explicando una relación con la variable tphone, que aumentó su grado de explicación 
+# a un 82.4%, y que todas las variables son relevantes, con la excepción de step y active.
+
+# Multicolinealidad
+
+# En el análisis previo, se observó una gran correlación entre varios predictores, por lo cual, se espera que 
+# muestre problemas de multucolinealidad
+
+vif(reg_step)
+
+# Efectivamente el valor del vif de las siguientes variables superan el umbral aceptable(5):
+# step, dist, active, inbed y lightsl. Es por esto que las mismas serán removidas del modelo para analizar
+# diferencias respecto al modelo anterior (principio de Parsimonia)
+
+# Modelo Final
+
+reg_final <- lm(tphone ~ cal + deepsl + nphone + unphone ,data=datos, subset=train)
+
+summary(reg_final)
+
+# Predicción 
+
+# Para evaluar la bondad de ajuste del modelo se utilizará la técnica de Cross-Validation.
+
+datos$pred <- predict(reg_final, datos)
+
+# ECM
+
+ECM.train <- sqrt(sum((datos$pred[train]-datos$tphone[train])^2)/(reg_final$df.residual))
+ECM.train
+
+ECM.test <- sqrt(sum((datos$pred[test]-datos$tphone[test])^2)/(length(datos$tphone[test])))
+ECM.test
+
+# Error Relativo
+
+ECM.train/mean(datos$tphone)
+ECM.test/mean(datos$tphone)
+
+# R2
+
+r2.train <- cor(datos$tphone[train],datos$pred[train])^2
+r2.train
+ 
+r2.test <- cor(datos$tphone[test],datos$pred[test])^2
+r2.test
+
 
 
