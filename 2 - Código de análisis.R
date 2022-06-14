@@ -37,7 +37,7 @@ b1 <- 3
 b2 <- -1
 b3 <- 0.5
 
-y <- b0 + b1*x + b2*x^2 + b3*x^3
+y <- b0 + b1*x + b2*x^2 + b3*x^3 + e
 
 # b. Se selecciona mejor modelo 
 
@@ -58,7 +58,6 @@ which.max(model_summary$adjr2)
 
 par(mfrow = c(2, 2))
 
-
 plot(model_summary$cp, main = "Mejor Cp" , xlab = "Tamaño del subset", ylab= "Cp", pch = 20, type = "l")
 points(3, model_summary$cp[3], pch = 4, col = "brown3",cex = 2, lwd = 3)
 plot(model_summary$bic, main = "Mejor BIC" , xlab = "Tamaño del subset", ylab= "BIC", pch = 20, type = "l")
@@ -66,11 +65,13 @@ points(3, model_summary$bic[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
 plot(model_summary$adjr2, main = "Mejor R2 ajustado" , xlab = "Tamaño del subset", ylab= "R2 ajustado", pch = 20, type = "l")
 points(3, model_summary$adjr2[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
 
+par(mfrow = c(2, 2))
 
-coef(model, which.max(model_summary$adjr2))
+plot(model, scale = "Cp")
+plot(model, scale = "bic")
+plot(model, scale = "adjr2")
 
-
-# c. Selecci?n hacia adelante
+# c. Seleccion hacia adelante
 
 model_fwd <- regsubsets(y ~ x + I(x^2) + I(x^3) + I(x^4) + I(x^5) + I(x^6) + I(x^7) + I(x^8) + I(x^9) + I(x^10), 
                     data = df, 
@@ -79,14 +80,10 @@ model_fwd <- regsubsets(y ~ x + I(x^2) + I(x^3) + I(x^4) + I(x^5) + I(x^6) + I(x
 model_fwd_summary <- summary(model_fwd)
 model_fwd_summary
 
-min_cp <- which.min(model_fwd_summary$cp)
-min_cp
+which.min(model_fwd_summary$cp)
+which.min(model_fwd_summary$bic)
+which.max(model_fwd_summary$adjr2)
 
-min_bic <- which.min(model_fwd_summary$bic)
-min_bic
-
-max_adjr2 <- which.max(model_fwd_summary$adjr2)
-max_adjr2
 
 # Se visualizan valores
 
@@ -94,24 +91,111 @@ par(mfrow = c(2, 2))
 
 plot(model_fwd_summary$cp, main = "Mejor Cp" , xlab = "Tama?o del subset", ylab= "Cp", pch = 20, type = "l")
 points(3, model_fwd_summary$cp[3], pch = 4, col = "brown3",cex = 2, lwd = 3)
-
 plot(model_fwd_summary$bic, main = "Mejor BIC" , xlab = "Tama?o del subset", ylab= "BIC", pch = 20, type = "l")
 points(3, model_fwd_summary$bic[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
-
 plot(model_fwd_summary$adjr2, main = "Mejor R2 ajustado" , xlab = "Tama?o del subset", ylab= "R2 ajustado", pch = 20, type = "l")
 points(3, model_fwd_summary$adjr2[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
 
-coefficients(model_fwd,3)
-coefficients(model_fwd, id = 4)
+par(mfrow = c(2, 2))
+
+plot(model_fwd, scale = "Cp")
+plot(model_fwd, scale = "bic")
+plot(model_fwd, scale = "adjr2")
 
 
-#COMENTAR!!!
+coef(model, 3)
+coef(model_fwd,3)
 
-# d.Lasso y Cross-validation
+# Se observa que ambos metodos eligieron el mismo modelo con los mismos coeficientes 
 
-matrix = model.matrix(y ~ poly(x, 10, raw = T), data = df)
+# d.Lasso
 
+x <- model.matrix(y ~ ., data = df)
+y <- df$y
 
+set.seed(1)
+train <- sample(1:nrow(x), nrow(x) / 2)
+test <- (-train)
+y.test <- y[test]
+
+grid <- 10^seq(10, -2, length = 100)
+lasso.mod <- glmnet(x[train, ], y[train], alpha = 1,
+                    lambda = grid)
+plot(lasso.mod)
+
+# Cross-Validation
+
+cv.out <- cv.glmnet(x[train, ], y[train], alpha = 1)
+plot(cv.out)
+bestlam <- cv.out$lambda.min
+lasso.pred <- predict(lasso.mod, s = bestlam,
+                      newx = x[test, ])
+mean((lasso.pred - y.test)^2)
+
+out <- glmnet(x, y, alpha = 1, lambda = grid)
+lasso.coef <- predict(out, type = "coefficients",
+                      s = bestlam)
+lasso.coef
+lasso.coef[lasso.coef != 0]
+
+# e. Otra función 
+
+set.seed(1)
+
+x <- rnorm(100)
+e <- rnorm(100)
+
+b0 <- 1
+b7 <- 2
+
+W <- b0 + b7*x^7 + e
+
+df <- data.frame(W, x)
+
+modelW <- regsubsets(W ~ x + I(x^2) + I(x^3) + I(x^4) + I(x^5) + I(x^6) + I(x^7) + I(x^8) + I(x^9) + I(x^10), 
+                    data = df, 
+                    nvmax = 10)
+
+model_summaryw <- summary(modelW)
+model_summaryw
+
+which.min(model_summaryw$cp)
+which.min(model_summaryw$rss)
+which.max(model_summaryw$adjr2)
+
+coef(model, 2)
+
+# Lasso 2
+
+x <- model.matrix(W ~ ., data = df)
+y <- df$W
+
+set.seed(1)
+train <- sample(1:nrow(x), nrow(x) / 2)
+test <- (-train)
+y.test <- y[test]
+
+grid <- 10^seq(10, -2, length = 100)
+lasso.mod <- glmnet(x[train, ], y[train], alpha = 1,
+                    lambda = grid)
+plot(lasso.mod)
+
+# Cross-Validation
+
+cv.out <- cv.glmnet(x[train, ], y[train], alpha = 1)
+plot(cv.out)
+bestlam <- cv.out$lambda.min
+lasso.pred <- predict(lasso.mod, s = bestlam,
+                      newx = x[test, ])
+mean((lasso.pred - y.test)^2)
+
+out <- glmnet(x, y, alpha = 1, lambda = grid)
+lasso.coef <- predict(out, type = "coefficients",
+                      s = bestlam)
+lasso.coef
+lasso.coef[lasso.coef != 0]
+
+# La función Y performa mejor ya que tiene menor error (rss) que la función W.
 
 #============================= PARTE 2 ===================================
 
