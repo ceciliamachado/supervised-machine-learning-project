@@ -115,7 +115,7 @@ matrix = model.matrix(y ~ poly(x, 10, raw = T), data = df)
 
 #============================= PARTE 2 ===================================
 
-# Pre?mbulo 2 #
+# Preambulo 2 #
 
 # Borramos datos de la memoria
 rm(list = ls())
@@ -193,13 +193,6 @@ summary(lm(formula= mpg ~ .*. , data = datos[,-9]))
 
 # También se puede ver que hay predictores con un solo asterisco, pero estas no serían lo
 # suficientemente significativas para este modelo debido al gran número de predictores que contiene.
-
-# f. Testear hipótesis Beta1=Beta2=0
-
-# H0: Si Beta1 = 0 
-# H1: Beta1 != 0
-
-coef(summary(reg_multtiple_mpg))
 
 #============================= PARTE 3 ===================================
 
@@ -332,6 +325,7 @@ setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-pro
 library(readxl)
 library(skimr)
 library(car)
+library(glmnet)
 
 # Cargamos datos
 datos <- read_excel("Sleep&BehavioralHealth.xlsx")
@@ -339,29 +333,39 @@ datos <- read_excel("Sleep&BehavioralHealth.xlsx")
 # Esta es una base de datos que registra la calidad del sueño y actividades de 24 estudiantes universitarios. 
 # Los datos fueron recolectados de sus smartwatches y smatphones por 7 días y noches consecutivas.
 
+# Contiene 14 variables y son las siguientes: 
+
+# Subjec: identificación del estudiante que registro los datos
+# Day: Día que se registran los datos 
+# Step: Cantidad de pasos
+# Dist: Distancia recorrida en km
+# Cal: Calorías utilizadas en el día 
+# Active: Tiempo de actividad en minutos 
+# Inbed: Tiempo total en la cama en minutos
+# Inbedaw: Tiempo en la cama despierto en minutos 
+# Lightsl: Tiempo de sueño en fase light en minutos 
+# Deepsl: Tiempo de sueño en fase profunda en minutos
+# REMsl: Tiempo de sueño en fase REM en minutos
+# Tphone: Tiempo total de uso del celular en minutos
+# Nphone: Tiempo de uso del celular en la noche en minutos 
+# Unphone: Cantidad de veces que desbloquea el celular en un día 
+
 # Visualizamos datos
 View(datos)
 dim(datos)
 names(datos)
 str(datos)
 
+datos <- datos[,3:14] # Se excluyen las variables subject y day ya que no son relevantes para el modelo
 
 # Fin del preambulo #
 #=========================================================================
 
 # Definición del problema
 
-# Realizar un modelo que sirva para predecir el tiempo que dormirá un estudiante, teniendo en cuenta
-# patrones de comportamiento que son registrados por dispositivos inteligentes.
-
-# Dicho problema surge de la inquietud de saber cuáles son esos patrones de comportamiento  más 
-# relevantes que afectan el sueño de un jóven, ya que hay diversos estudios que han informado
-# que el uso de dispositivos de pantalla afectan el sueño(1). 
-
-# (1)https://www.isglobal.org/healthisglobal/-/custom-blog-portlet/los-dispositivos-moviles-o-los-ladrones-de-sueno-adolescente/6001955/0
-
-# Asimismo, también se quiere verificar si la cantidad de sueño está relacionada con la cantidad 
-# de actividad que realiza el jóven.
+# Teniendo en cuenta la base de datos obtenida, se busca realizar un modelo que arroje cuáles son las principales 
+# variables de comportamiento que afectan el uso del celular de un estudiante. Ya que diversos estudios han informado 
+# que el uso del mismo afecta la calidad del estudiante. 
 
 # a. Revisión de los datos 
 
@@ -369,31 +373,37 @@ attach(datos)
 
 skim(datos)
 
-diagrama_disp <- pairs(~ ., col = factor(mtcars$am), pch = 20, data = datos[,3:14], main= "Diagrama de dispersión")
+diagrama_disp <- pairs(~ ., col = factor(mtcars$am), pch = 20, data = datos, main= "Diagrama de dispersión")
 
-cor(datos[,3:14])
+cor(datos) 
 
 # El análisis muestra correlaciones muy altas entre los predictores:
-# dist y step, dist y active 
+# dist y step, dist y active, active y step
 # inbed con lightsl y REMsl, 
 # nphone con  tphone y cal
 
 # Si la correlación es alta  por lo tanto las variables aportan información redundante, se analizará si el 
 # modelo mejora o no empeora excluyendo alguno de estos predictores. 
 
+# b. Definición de modelo
 
-# b. Modelado
+# Para dicho problema se utilizará el modelo de regresion lineal multiple, y la hipótesis que se plantea es: 
+# H0: Beta1 = Beta2 = ...= Beta n = 0
+# H1: al menos un Beta j != 0 
+# Para éste test se utilizará el estadístico F con un nivel de confianza de al menos 95%
+
+# c. Modelado
 
 # Se parte el data set en training y testing para estimar los coeficientes del modelo en el primero
 # y tener una estimación independiente de la performance en el dataset de testing.
 
-# En este caso se ha decidido tomar una muestra de training del 70%, y por ende, 30% de testing.
+# En este caso se ha decidido tomar una muestra de test y train de un 50%.
 
 set.seed(1)
-train <- (sample(nrow(datos), nrow(datos)*0.8))
+train <- (sample(nrow(datos), nrow(datos)*0.5))
 test <- (-train)
 
-# Regresión Lineal 
+# d. Regresión Lineal multiple
 
 # Se realiza un ajuste con todas las variables del modelo con training
 
@@ -402,11 +412,11 @@ reg <- lm(tphone~., data=datos, subset=train)
 summary(reg)
 
 # El p-value obtenido para el F-statistic es muy pequeño, por lo cual, al menos uno de los predictores
-# introduciodos en el modelo está relacionado con la variable tphone.
-# También se observa que el modelo con todas los perdictores es capaz de explicar un 82.2%, pero que los que
-# tienen más relevancia son: step, dist, active, nphone, unphone.
+# introduciodos en el modelo está relacionado con la variable tphone, por lo cual, se rechaza H0.
+# También se observa que el modelo con todos los perdictores es capaz de explicar un 83.2%, pero que los que
+# tienen más relevancia son: dist, cal, active, nphone, unphone.
 
-# Selección de predictores
+# e. Selección de predictores
 
 # Como la exclusión de predictores basándose en p-values no es aconsejable, en su lugar se empleará
 # el método de step para la selección de los mismos. 
@@ -415,27 +425,29 @@ reg_step=step(reg, direction = "both", trace = 1)
 
 summary(reg_step)
 
-# Se observa el modelo sigue explicando una relación con la variable tphone, que aumentó su grado de explicación 
-# a un 82.4%, y que todas las variables son relevantes, con la excepción de step y active.
+# Se observa que el modelo sigue explicando una relación con la variable tphone, que aumentó su grado de explicación 
+# a un 83.5%, y que todas las variables son relevantes, con la excepción de step.
 
-# Multicolinealidad
+# f. Multicolinealidad
 
 # En el análisis previo, se observó una gran correlación entre varios predictores, por lo cual, se espera que 
-# muestre problemas de multucolinealidad
+# muestre problemas de multicolinealidad
 
 vif(reg_step)
 
 # Efectivamente el valor del vif de las siguientes variables superan el umbral aceptable(5):
-# step, dist, active, inbed y lightsl. Es por esto que las mismas serán removidas del modelo para analizar
-# diferencias respecto al modelo anterior (principio de Parsimonia)
+# step, dist, active, inbed y lightsl. Las mismas serán removidas del modelo para analizar
+# diferencias respecto al modelo anterior.
 
-# Modelo Final
+# g. Modelo Final
 
 reg_final <- lm(tphone ~ cal + deepsl + nphone + unphone ,data=datos, subset=train)
 
 summary(reg_final)
 
-# Predicción 
+# El modelo no performa mejor que el anterior, pero no contiene variables que explican lo mismo entre ellas.
+
+# h. Predicción 
 
 # Para evaluar la bondad de ajuste del modelo se utilizará la técnica de Cross-Validation.
 
@@ -461,6 +473,10 @@ r2.train
  
 r2.test <- cor(datos$tphone[test],datos$pred[test])^2
 r2.test
+
+# El modelo performa mejor en test
+
+# Conclusiones finales
 
 
 
