@@ -325,7 +325,6 @@ setwd("C:/Users/Cecilia Machado/Documents/GitHub/supervised-machine-learning-pro
 library(readxl)
 library(skimr)
 library(car)
-library(glmnet)
 
 # Cargamos datos
 datos <- read_excel("Sleep&BehavioralHealth.xlsx")
@@ -364,8 +363,8 @@ datos <- datos[,3:14] # Se excluyen las variables subject y day ya que no son re
 # Definición del problema
 
 # Teniendo en cuenta la base de datos obtenida, se busca realizar un modelo que arroje cuáles son las principales 
-# variables de comportamiento que afectan el uso del celular de un estudiante. Ya que diversos estudios han informado 
-# que el uso del mismo afecta la calidad del estudiante. 
+# variables de comportamiento que afectan la cantidad de uso del celular de un estudiante. Ya que diversos estudios han informado 
+# que el uso excesivo del mismo afecta la calidad del estudiante. 
 
 # a. Revisión de los datos 
 
@@ -477,6 +476,22 @@ r2.test
 # El modelo performa mejor en test
 
 # Conclusiones finales
+
+# Se observa que el mejor modelo arroja que los comportamientos que más afectan la cantidad de uso del teléfono 
+# son las calorías que quema ya que está relacionado con la cantidad de actividad física que hay realizado,
+# si tuvo sueño profundo, si usó el teléfono en la noche y cuántas veces desbloqueó el mismo. 
+# Cabe destacar que cuantas más horas de sueño profundo haya tenido el estudiante, el mismo utilizará menos el teléfono, 
+# ya que su coeficiente es negativo respecto a los demas predictores.
+
+# En lo que respecta a la performance del modelo final, si se observa el valor del r2adj el mismo no performa mejor
+# que el modelo inicial, pero si se puede afirmar que este es más robusto ya que es razonable que el modelo 
+# haya quedado con una cantidad baja de variables debido a la alta correlación que 
+# había entre ellas, por ejemplo, habían demasiadas variables que explicaban patrones de sueño, y también
+# habían demasiadas variables que estaban relacionadas con la actividad física.
+
+# También es importante descatar que el modelo no puede llegar a ser representativo de la población de todos los estudiantes 
+# universitarios ya que la muestra contaba con tan solo 168 observaciones.
+
 
 
 
