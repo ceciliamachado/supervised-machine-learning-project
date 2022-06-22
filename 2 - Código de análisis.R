@@ -89,11 +89,11 @@ which.max(model_fwd_summary$adjr2)
 
 par(mfrow = c(2, 2))
 
-plot(model_fwd_summary$cp, main = "Mejor Cp" , xlab = "Tama?o del subset", ylab= "Cp", pch = 20, type = "l")
+plot(model_fwd_summary$cp, main = "Mejor Cp" , xlab = "Tamaño del subset", ylab= "Cp", pch = 20, type = "l")
 points(3, model_fwd_summary$cp[3], pch = 4, col = "brown3",cex = 2, lwd = 3)
-plot(model_fwd_summary$bic, main = "Mejor BIC" , xlab = "Tama?o del subset", ylab= "BIC", pch = 20, type = "l")
+plot(model_fwd_summary$bic, main = "Mejor BIC" , xlab = "Tamaño del subset", ylab= "BIC", pch = 20, type = "l")
 points(3, model_fwd_summary$bic[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
-plot(model_fwd_summary$adjr2, main = "Mejor R2 ajustado" , xlab = "Tama?o del subset", ylab= "R2 ajustado", pch = 20, type = "l")
+plot(model_fwd_summary$adjr2, main = "Mejor R2 ajustado" , xlab = "Tamaño del subset", ylab= "R2 ajustado", pch = 20, type = "l")
 points(3, model_fwd_summary$adjr2[3], pch = 4, col = "brown3", cex = 2, lwd = 3)
 
 par(mfrow = c(2, 2))
@@ -233,7 +233,7 @@ View(datos)
 
 # a.Diagrama de dispersion con todas las varibles
 
-diagrama_disp <- pairs(~ ., col = factor(mtcars$am), pch = 19, data = datos)
+diagrama_disp <- pairs(~ ., col = factor(mtcars$am), pch = 20, data = datos)
 
 
 # b.Matriz de correlaciones 
@@ -244,6 +244,7 @@ correlaciones
 # c.Regresion lineal multiple para la variable "mpg"
 
 reg_multtiple_mpg <- lm(mpg ~ . - name, data = datos)
+
 summary(reg_multtiple_mpg)
 
 # Se puede afirmar que al menos uno de los predictores introducidos en el modelo está relacionado con la variable mpg
@@ -333,14 +334,16 @@ summary(reg_log)
 glm_probs <- predict(reg_log, type = "response") 
 glm_pred <- rep("Down", length(glm_probs))
 glm_pred[glm_probs > 0.5] = "Up"
-tabla <- table(glm_pred, Direction)
-tabla
+tabla1 <- table(glm_pred, Direction)
+tabla1
 
 falso_positivo <- paste(round(tabla[2,2] / (tabla[2,2] + tabla[1,2])*100, 1), "%", sep = "")
 falso_positivo
 
 falso_negativo <- paste(round(tabla[1,1] / (tabla[2,1] + tabla[1,1])*100, 1), "%", sep = "")
 falso_negativo
+
+mean(glm_pred == Direction)
 
 # d. Ajuste de modelo logístico (LDA)
 
@@ -355,28 +358,48 @@ glm_probs2 <- predict(reg_log2, datos_0910 , type = "response")
 glm_pred2 <- rep("Down", length(glm_probs2))
 glm_pred2[glm_probs2 > 0.5] = "Up"
 Direction_0910 <- Direction[!train]
-tabla <- table(glm_pred2, Direction_0910)
-tabla
+tabla2 <- table(glm_pred2, Direction_0910)
+tabla2
 
 mean(glm_pred2 == Direction_0910)
+
+falso_positivo <- paste(round(tabla2[2,2] / (tabla2[2,2] + tabla2[1,2])*100, 1), "%", sep = "")
+falso_positivo
+
+falso_negativo <- paste(round(tabla2[1,1] / (tabla2[2,1] + tabla2[1,1])*100, 1), "%", sep = "")
+falso_negativo
 
 # e. Discriminante lineal
 
 lda_fit = lda(Direction ~ Lag2, data = datos, subset = train)
-lda_pred = predict(lda.fit, datos_0910)
-tabla <- table(lda.pred$class, Direction_0910)
-tabla
+lda_pred = predict(lda_fit, datos_0910)
+tabla3 <- table(lda_pred$class, Direction_0910)
+tabla3
 
-mean(lda.pred$class == Direction_0910)
+mean(lda_pred$class == Direction_0910)
+
+falso_positivo <- paste(round(tabla3[2,2] / (tabla3[2,2] + tabla2[1,2])*100, 1), "%", sep = "")
+falso_positivo
+
+falso_negativo <- paste(round(tabla3[1,1] / (tabla3[2,1] + tabla3[1,1])*100, 1), "%", sep = "")
+falso_negativo
+
+
 
 # f. Discriminante cuadrático
 
 qda.fit = qda(Direction ~ Lag2, data = datos, subset = train)
 qda.class = predict(qda.fit, datos_0910)$class
-tabla <- table(qda.class, Direction_0910)
-tabla
+tabla4 <- table(qda.class, Direction_0910)
+tabla4
 
 mean(qda.class == Direction_0910)
+
+falso_positivo <- paste(round(tabla4[2,2] / (tabla4[2,2] + tabla4[1,2])*100, 1), "%", sep = "")
+falso_positivo
+
+falso_negativo <- paste(round(tabla4[1,1] / (tabla4[2,1] + tabla4[1,1])*100, 1), "%", sep = "")
+falso_negativo
 
 # g. KNN
 
@@ -385,15 +408,20 @@ test.X = as.matrix(Lag2[!train])
 train.Direction = Direction[train]
 set.seed(1)
 knn.pred = knn(train.X, test.X, train.Direction, k = 1)
-tabla <- table(knn.pred, Direction_0910)
-tabla
+tabla5 <- table(knn.pred, Direction_0910)
+tabla5
 
 mean(knn.pred == Direction_0910)
 
+falso_positivo <- paste(round(tabla5[2,2] / (tabla5[2,2] + tabla5[1,2])*100, 1), "%", sep = "")
+falso_positivo
+
+falso_negativo <- paste(round(tabla5[1,1] / (tabla5[2,1] + tabla5[1,1])*100, 1), "%", sep = "")
+falso_negativo
+
 # ¿Qué método ajusta mejor?
 
-# Los métodos que ajustan mejor son el de Regresión logística y LDA
-# ya que arrojan similares tasas de error. 
+# Los métodos que ajusta  mejor es el de KNN ya que es el que arroja menor error.
 
 #============================= PARTE 4 ===================================
 
